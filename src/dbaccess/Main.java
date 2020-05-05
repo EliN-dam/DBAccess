@@ -26,11 +26,7 @@ public class Main {
                 System.out.println();
                 switch(option) {
                     case 1:
-                        Database mysql = new Database("jdbc:mysql://");
-                        mysql.select("SELECT FID, title, description, category, "
-                                + "price, length, rating FROM film_list LIMIT 25");
-                        mysql.showResults();
-                        Console.toContinue();
+                        new MySQL();
                         break;
                     case 2:
 
@@ -38,9 +34,11 @@ public class Main {
                         break;
                     case 3:
 
+                        Console.toContinue();
                         break;
                     case 4:
 
+                        Console.toContinue();
                         break;
                 }
             } catch (Exception e) {

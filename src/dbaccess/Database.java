@@ -1,42 +1,35 @@
+/**
+
+ */
 package dbaccess;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
 
 /**
- * 
+ * Clase que contiene una serie de metodos para conectar y trabajar con bases de datos.
  * @author zelda
  */
 public class Database {
     
-    private Statement current;
-    private ResultSet result;
-    private String query;
-    private int[] sizes;
-    private int nColumns;
-    private ResultSetMetaData mData;
+    private String connectionString;
+    private String login;
+    private String password;
     
-    public Database(String connection){
-        try {
-            Connection server = this.connect(
-                    connection,
-                    "192.168.1.108:3306/sakila",
-                    "root",
-                    ""
-            );
-            this.current = server.createStatement(
-                    ResultSet.TYPE_SCROLL_SENSITIVE, // Permite navegar hacia atrás en el ResultSet.
-                    ResultSet.CONCUR_READ_ONLY
-            );
-        } catch (SQLException e) {
-            System.out.println("No se ha podido realizar la conexión a la base "
-                    + "de datos:");
-            e.printStackTrace();
-        }
+    private String query;
+    
+    public Database(String connection, String url, String port, String dbName, 
+            String login, String pass){
+        if (port.isEmpty())
+            this.connectionString = connection + url + "/" + dbName;
+        else
+            this.connectionString = connection + url + ":" + port + "/" + dbName;
+        this.login = login;
+        this.password = pass;
     }
 
     public String getQuery() {
@@ -45,42 +38,40 @@ public class Database {
     
     /**
      * Realiza una conexión a la base de datos en base a los parametros seleccionados.
-     * @param access Sintaxis con el acceso a la base de datos.
-     * @param url Dirección de la base datos.
+     * @param connection String con el SGBD, la dirección, el puerto, y la base de datos.
      * @param user Usuario de la base de datos.
      * @param pass Contraseña del usuario de la base de datos.
      * @return El objeto creado con la conexión a la base de datos.
      * @throws SQLException 
      */
-    public Connection connect(String access, String url, String user, 
-            String pass) throws SQLException{
-        return DriverManager.getConnection(access + url, user, pass);
+
+    public Connection connect(String connection, String user, String pass) 
+            throws SQLException{
+        return DriverManager.getConnection(connection, user, pass);
     }  
     
     /**
-     * Realiza una consulta de selección a la base de datos y almacena sus resultados.
-     * @param query String con la consulta a realizar.
+     * Realiza una consulta de selección a la base de datos, almacena y muestra 
+     * sus resultados.
+     * https://www.arquitecturajava.com/jdbc-prepared-statement-y-su-manejo/
+     * https://www.javatpoint.com/PreparedStatement-interface
+     * @param query La consulta a realizar.
+     * @param tableName Nombre de la tabla.
      */
-    public void select(String query){
-        try {
-            this.result = this.current.executeQuery(this.query = query);
-            this.mData = this.result.getMetaData();
+    public void select(String query, String tableName){
+        try ( // Usando el Try-With-Paramenters.
+                Connection conn = this.connect(this.connectionString, this.login, 
+                        this.password);
+                PreparedStatement stmt = conn.prepareStatement(
+                    query,
+                    ResultSet.TYPE_SCROLL_SENSITIVE, // Permite navegar hacia atrás en el ResultSet.
+                    ResultSet.CONCUR_READ_ONLY
+                );
+                ResultSet result = stmt.executeQuery();
+            ){
+            this.printTable(result, this.loadSizes(result), tableName);
         } catch (SQLException e){
-            System.out.println("No se ha podido realizar la consulta: ");
-            e.printStackTrace();
-        }
-    }
-    
-    /**
-     * Muestra los resultado de la consulta en consola.
-     */
-    public void showResults(){
-        try {
-            if (this.loadSizes())
-                this.printTable();
-        } catch (SQLException e){
-            System.out.println("Ha ocurrido un error al mostrar los resultados de "
-                    + "la consulta: ");
+            System.out.println("\nNo realizar la consulta a la base de datos: ");
             e.printStackTrace();
         }
     }
@@ -88,61 +79,69 @@ public class Database {
     /**
      * Recorre los resultados de la consulta midiendo los tamaños de cada columna 
      * y el total de la tabla necesarios para dibujar la tabla.
+     * @param result El resultado de la consulta realizada.
      * @return <ul>
      *              <li>True - Si ha conseguidos y registrado los tamaños</li>
      *              <li>False - Si no ha podido obtener los tamaños</li>
      *         </ul>
      * @throws SQLException 
      */
-    public boolean loadSizes() throws SQLException{
-        if (this.result != null){
-            this.nColumns = this.result.getMetaData().getColumnCount();
-            this.sizes = new int[this.nColumns + 1];
+    public int[] loadSizes(ResultSet result) throws SQLException{
+        if (result != null){
+            ResultSetMetaData mData = result.getMetaData();
+            int nColumns = mData.getColumnCount();
+            int sizes[] = new int[nColumns + 1];
             int length;
-            this.result.beforeFirst(); // Nos aseguramos que empieza por el principio.
-            for (int i = 1; i <= this.nColumns; i++){ // Contamos la cabecera.
-                length = this.mData.getColumnLabel(i).length();
-                    if (this.sizes[i] < length)
-                        this.sizes[i] = length;
+            result.beforeFirst(); // Nos aseguramos que empieza por el principio.
+            for (int i = 1; i <= nColumns; i++){ // Contamos la cabecera.
+                length = mData.getColumnLabel(i).length();
+                    if (sizes[i] < length)
+                        sizes[i] = length;
             }
-            while (this.result.next()){ // Contamos los resultados.
-                for (int i = 1; i <= this.nColumns; i++){
-                    length = this.result.getString(i).length();
-                    if (this.sizes[i] < length)
-                        this.sizes[i] = length;
+            while (result.next()){ // Contamos los resultados.
+                for (int i = 1; i <= nColumns; i++){
+                    length = result.getString(i).length();
+                    if (sizes[i] < length)
+                        sizes[i] = length;
                 }
             }
             length = 0; // Reinicio la variable para reutilizarla.
-            for (int i = 1; i < this.sizes.length; i++){
-                length += this.sizes[i];
+            for (int i = 1; i < sizes.length; i++){
+                length += sizes[i];
             }
             sizes[0] = length; // Almaceno la longitud total.
-            return true;
+            return sizes;
         }
-        return false;
+        return null;
     }
     
     /**
      * Dibuja una tabla en consola mostrando los resultados de la consulta.
+     * @param result El resultado de la consulta.
+     * @param tableName Nombre de la tabla o vista.
+     * @param sizes Los tamaños de cada una de las columnas.
      * @throws SQLException 
      */
-    public void printTable() throws SQLException{
-        int maxSize = this.sizes[0] + (this.nColumns * 2) + (this.nColumns - 1);
+    public void printTable(ResultSet result, int[] sizes, String tableName) throws SQLException{
+        ResultSetMetaData mData = result.getMetaData();
+        int nColumns = mData.getColumnCount();
+        int maxSize = sizes[0] + (nColumns * 2) + (nColumns - 1);
         String interline = "+";
-        for (int i = 1; i < this.sizes.length; i++)
-            interline += new String(new char[this.sizes[i]]).replace('\0', '=') 
+        for (int i = 1; i < sizes.length; i++)
+            interline += new String(new char[sizes[i]]).replace('\0', '=') 
                     + "==" + "+"; 
-        this.printTitle(maxSize);
-        this.printHead(interline);
-        this.printTuples(maxSize, interline);
+        this.printTitle(tableName, maxSize);
+        this.printHead(sizes, mData, interline);
+        this.printTuples(result, sizes, nColumns, maxSize, interline);
     }
     
     /**
-     * Dibuja la cabecerá con el título de la tabla.
+     * Dibuja la cabecera con el título de la tabla.
+     * @param tableName Nombre de la tabla o vista.
      * @param totalSize Define la longitud total de la tabla.
      */
-    public void printTitle(int totalSize){
-        int titleLength = this.query.length();
+    public void printTitle(String tableName, int totalSize){
+        int titleLength = tableName.length();
         /* (this.nFields * 2) -> 2 espacios adicionales a cada lado para cada dato
          * (this.nFields - 1) -> el espacio para cada columna separadora. */
         System.out.println("+" + new String(new char[totalSize]).replace('\0', '=') 
@@ -151,48 +150,55 @@ public class Database {
                           "s%" + titleLength +
                           "s%" + ((totalSize - titleLength) + 1) / 2 + "s|" +
                           System.lineSeparator(), 
-                          "", this.query, "");
+                          "", tableName.toUpperCase(), "");
         System.out.println("+" + new String(new char[totalSize]).replace('\0', '=') 
                 + "+");
     }
     
     /**
      * Dibuja la cabecera de la tabla con los nombres de las columnas.
+     * @param sizes Los tamaños de cada una de las columnas.
+     * @param data Datos de la consulta como los nombres de las columnas o su número.
      * @param interline Cadena de caracteres con los bordes entre filas.
      * @throws SQLException 
      */
-    public void printHead(String interline) throws SQLException{
+    public void printHead(int[] sizes, ResultSetMetaData data, String interline) 
+            throws SQLException{
         int length;
-        this.result.beforeFirst(); // Nos aseguramos que empieza por el principio.
         System.out.print("|");
-        for (int i = 1; i <= this.nColumns; i++){
-            length = this.mData.getColumnLabel(i).length();
-            System.out.printf("%" + (this.sizes[i] - length + 2) / 2 +
+        for (int i = 1; i <= data.getColumnCount(); i++){
+            length = data.getColumnLabel(i).length();
+            System.out.printf("%" + (sizes[i] - length + 2) / 2 +
                                   "s%-" + length +
-                                  "s%" + (this.sizes[i] - length + 3)  / 2 + "s|",
-                                  "", mData.getColumnLabel(i) , "");
+                                  "s%" + (sizes[i] - length + 3)  / 2 + "s|",
+                                  "", data.getColumnLabel(i) , "");
         }
         System.out.println("\n" + interline);
     }
     
     /**
      * Dibuja por consola las filas con los registros almacenados de la consulta.
+     * @param result El resultado de la consulta.
+     * @param sizes Los tamaños de cada una de las columnas.
+     * @param nColumns Número de columnas que ha devuelto la consulta.
      * @param totalSize Define la longitud total de las filas.
      * @param interline Cadena de caracteres con los bordes entre filas.
      * @throws SQLException 
      */
-    public void printTuples(int totalSize, String interline) throws SQLException{
+    public void printTuples(ResultSet result, int[] sizes, int nColumns, int totalSize,
+            String interline) throws SQLException{
         int length;
-        while (this.result.next()){
+        result.beforeFirst(); // Nos aseguramos que empieza por el principio.
+        while (result.next()){
             System.out.print("|");
-            for (int i = 1; i <= this.nColumns; i++){
-                length = this.result.getString(i).length();
-                System.out.printf("%" + (this.sizes[i] - length + 2) / 2 +
+            for (int i = 1; i <= nColumns; i++){
+                length = result.getString(i).length();
+                System.out.printf("%" + (sizes[i] - length + 2) / 2 +
                                   "s%-" + length +
-                                  "s%" + (this.sizes[i] - length + 3)  / 2 + "s|",
-                                  "", this.result.getString(i), "");
+                                  "s%" + (sizes[i] - length + 3)  / 2 + "s|",
+                                  "", result.getString(i), "");
             }
-            if (!this.result.isLast())
+            if (!result.isLast())
                 System.out.println("\n" + interline);
         }
         System.out.println("\n+" + new String(new char[totalSize]).replace('\0', '=') 

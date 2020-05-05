@@ -3,6 +3,7 @@ package utils;
 import java.util.Scanner;
 
 /**
+ * Some Static method to work with console.
  * @author zelda
  */
 public class Console {
