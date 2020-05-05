@@ -11,7 +11,7 @@ import java.util.Properties;
  */
 public class MySQL {
     
-    Properties config;
+    Database mysql;
     
     public MySQL(){
         this.load();
@@ -22,7 +22,14 @@ public class MySQL {
      * Carga los datos de configuración de la base de datos desde un archivo externo.
      */
     public void load(){
-        this.config = Configuration.loadConfig("config/MySQL.cfg");
+        Properties config = Configuration.loadConfig("config/MySQL.cfg");
+        this.mysql = new Database("jdbc:mysql://", 
+               config.getProperty("url"),
+               config.getProperty("port"),
+               config.getProperty("db"),
+               config.getProperty("login"),
+               config.getProperty("password")
+        );
     }
     
     /**
@@ -34,7 +41,8 @@ public class MySQL {
             "Añadir ina película a la base de datos",
             "Modificar una película de la base de datos",
             "Eliminar una película de la base de datos",
-            "Mostrar listado de películas"
+            "Mostrar listado de películas",
+            "Mostrar vista resumen de películas"
         };
         do {
             Console.showMenu("MySQL: Lista de películas", mainMenu);
@@ -43,7 +51,12 @@ public class MySQL {
                 System.out.println();
                 switch(option) {
                     case 1:
-
+                        this.mysql.insert("INSERT INTO film(title, description, "
+                                + "release_year, language_id, length) VALUES(?,?"
+                                + ",?,?,?);", "Sonic la película", "Sonic es un "
+                                + "pequeño erizo humanoide azul proveniente de "
+                                + "otra dimensión que puede correr a velocidades"
+                                + " supersónicas", 2020, 1, 99);
                         Console.toContinue();
                         break;
                     case 2:
@@ -55,16 +68,15 @@ public class MySQL {
                         Console.toContinue();
                         break;
                     case 4:
-                        Database mysql = new Database("jdbc:mysql://", 
-                                this.config.getProperty("url"),
-                                this.config.getProperty("port"),
-                                this.config.getProperty("db"),
-                                this.config.getProperty("login"),
-                                this.config.getProperty("password")
-                        );
-                        mysql.select("SELECT FID, title, description, category, "
-                                + "price, length, rating FROM film_list LIMIT 25", 
-                                "film_list");
+                        this.mysql.select("SELECT film_id, title, description "
+                                + "FROM film_text ORDER BY film_id DESC LIMIT 25;", 
+                                "film_text");
+                        Console.toContinue();
+                        break;
+                    case 5:
+                        this.mysql.select("SELECT FID, title, description, "
+                                + "category, price, length, rating FROM film_list"
+                                + " LIMIT 25;", "film_list");
                         Console.toContinue();
                         break;
                 }

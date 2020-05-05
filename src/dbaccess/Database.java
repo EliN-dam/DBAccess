@@ -1,6 +1,3 @@
-/**
-
- */
 package dbaccess;
 
 import java.sql.Connection;
@@ -203,5 +200,40 @@ public class Database {
         }
         System.out.println("\n+" + new String(new char[totalSize]).replace('\0', '=') 
                 + "+");
+    }
+    
+    /**
+     * Realiza un consulta de inserción en una tabla de la base de datos.
+     * @param query La consulta.
+     * @param value1 Valores a insertar en el mismo orden que la consulta.
+     * @param value2 Valores a insertar en el mismo orden que la consulta.
+     * @param value3 Valores a insertar en el mismo orden que la consulta.
+     * @param value4 Valores a insertar en el mismo orden que la consulta.
+     * @param value5 Valores a insertar en el mismo orden que la consulta.
+     */
+    public void insert(String query, String value1, String value2 , int value3, 
+            int value4, int value5){
+        try (
+                Connection conn = this.connect(this.connectionString, this.login, 
+                        this.password);
+                PreparedStatement stmt = conn.prepareStatement(
+                    query,
+                    ResultSet.TYPE_SCROLL_SENSITIVE,
+                    ResultSet.CONCUR_READ_ONLY
+                );
+        ){
+            stmt.setString(1, value1);
+            stmt.setString(2, value2);
+            stmt.setObject(3, value3); // SetObject por el dato es de tipo Year.
+            stmt.setInt(4, value4);
+            stmt.setInt(5, value5);
+            int rows = stmt.executeUpdate();
+            System.out.println("La inserción se ha realizado con éxito, " + rows
+                               + " líneas afectadas.");
+        } catch (SQLException e){
+            System.out.println("\nNo se ha podido realizar la inserción en la "
+                    + "base de datos: ");
+            e.printStackTrace();
+        }
     }
 }
