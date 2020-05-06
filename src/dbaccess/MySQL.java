@@ -51,12 +51,18 @@ public class MySQL {
                 System.out.println();
                 switch(option) {
                     case 1:
+                        /*this.mysql.insert("INSERT INTO film(title, description, "
+                                + "release_year, language_id, length) VALUES(?,?"
+                                + ",?,?,?);", new Object[] {
+                                    "Sonic la película",
+                                    "Sonic es un pequeño erizo humanoide azul "
+                                    + "proveniente de otra dimensión que puede "
+                                    + "correr a velocidades supersónicas",
+                                    2020, 1, 99
+                                });*/
                         this.mysql.insert("INSERT INTO film(title, description, "
                                 + "release_year, language_id, length) VALUES(?,?"
-                                + ",?,?,?);", "Sonic la película", "Sonic es un "
-                                + "pequeño erizo humanoide azul proveniente de "
-                                + "otra dimensión que puede correr a velocidades"
-                                + " supersónicas", 2020, 1, 99);
+                                + ",?,?,?);", entryFilmValues());
                         Console.toContinue();
                         break;
                     case 2:
@@ -85,5 +91,66 @@ public class MySQL {
                 option = 1;
             }
         } while (Console.inRange((int)option, 1, mainMenu.length));
+    }
+    
+    /**
+     * Solicita al usuario valores sobre una película.
+     * @return Array con los valores introducidos por el usuario.
+     */
+    public static Object[] entryFilmValues(){
+        Object[] values = new Object[5];
+        values[0] = Console.readLine("Escribe el nombre de la película: ").trim();
+        values[1] = Console.readLine("Escribe una descipción de la película: ").trim();
+        values[2] = Console.validInt("Escribe el año de estreno: ");
+        values[3] = getLanguage();
+        values[4] = Console.validInt("Por último, escribe la duración del metraje"
+                + " (en minutos): ");
+        return values;
+    }
+    
+    /**
+     * Solicita al usuario un idioma y valida que esté entre los disponibles.
+     * @return Valor entero asociado al idioma introducido.
+     */
+    public static int getLanguage(){
+        do {
+            int value = getLanguageID(Console.readLine("Escribe el idioma el la "
+                    + "cinta: "));
+            if (value != 0)
+                return value;
+            else
+                System.out.println("Idioma no válido, escoge otro (inglés, italiano,"
+                        + " chino, japones, francés o alemán).");
+        } while(true);
+    }
+    
+    /**
+     * Devuelve el ID del idioma seleccionamo.
+     * @param language Idioma escogido.
+     * @return Valor entero asociado al idioma.
+     */
+    public static int getLanguageID(String language){
+        switch(language.toLowerCase().trim()){
+            case "ingles":
+            case "inglés":
+                return 1;
+            case "italiano":
+                return 2;
+            case "japones":
+            case "japonés":
+                return 3;
+            case "chino":
+            case "mandarin":
+            case "mandarín":
+                return 4;
+            case "frances":
+            case "francés":
+                return 5;
+            case "aleman":
+            case "alemán":
+                return 6;
+            default:
+                return 0;
+        }
     }
 }

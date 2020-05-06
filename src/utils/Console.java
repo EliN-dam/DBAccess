@@ -1,5 +1,6 @@
 package utils;
 
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 /**
@@ -130,5 +131,21 @@ public class Console {
             default:
                 return false;
         }
+    }
+    
+    /**
+     * Request user for a value until enter a valid integer value.
+     * @param message(String) Message asking the user.
+     * @return A valid integer value introduced by the user. 
+     */
+    public static int validInt(String message){
+        do {
+            try {
+                int value = (int)readNumber(message, "int");
+                return value;
+            } catch (InputMismatchException e){
+                System.out.println("Debe introducir un valor numérico... ");
+            }
+        } while (true);
     }
 }

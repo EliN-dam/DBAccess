@@ -17,8 +17,6 @@ public class Database {
     private String login;
     private String password;
     
-    private String query;
-    
     public Database(String connection, String url, String port, String dbName, 
             String login, String pass){
         if (port.isEmpty())
@@ -27,10 +25,6 @@ public class Database {
             this.connectionString = connection + url + ":" + port + "/" + dbName;
         this.login = login;
         this.password = pass;
-    }
-
-    public String getQuery() {
-        return query;
     }
     
     /**
@@ -202,17 +196,13 @@ public class Database {
                 + "+");
     }
     
-    /**
+    /** 
      * Realiza un consulta de inserción en una tabla de la base de datos.
+     * https://stackoverflow.com/questions/21872040/jdbc-inserting-date-values-into-mysql
      * @param query La consulta.
-     * @param value1 Valores a insertar en el mismo orden que la consulta.
-     * @param value2 Valores a insertar en el mismo orden que la consulta.
-     * @param value3 Valores a insertar en el mismo orden que la consulta.
-     * @param value4 Valores a insertar en el mismo orden que la consulta.
-     * @param value5 Valores a insertar en el mismo orden que la consulta.
+     * @param values Valores a insertar en el mismo orden que la consulta.
      */
-    public void insert(String query, String value1, String value2 , int value3, 
-            int value4, int value5){
+    public void insert(String query, Object[] values){
         try (
                 Connection conn = this.connect(this.connectionString, this.login, 
                         this.password);
@@ -222,11 +212,9 @@ public class Database {
                     ResultSet.CONCUR_READ_ONLY
                 );
         ){
-            stmt.setString(1, value1);
-            stmt.setString(2, value2);
-            stmt.setObject(3, value3); // SetObject por el dato es de tipo Year.
-            stmt.setInt(4, value4);
-            stmt.setInt(5, value5);
+            for (int i = 0; i < values.length; i++){
+                stmt.setObject(i + 1, values[i]);
+            }
             int rows = stmt.executeUpdate();
             System.out.println("La inserción se ha realizado con éxito, " + rows
                                + " líneas afectadas.");
