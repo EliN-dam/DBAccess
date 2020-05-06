@@ -3,18 +3,18 @@ package dbaccess;
 import utils.Console;
 
 /**
- * Clase principal del proyecto, donse se inicia el mismo en el mÃ©todo main.
+ * Clase principal del proyecto, donse se inicia el mismo en el método main.
  * @author zelda
  */
 public class Main {
 
     /**
-     * MenÃº principal del ejercicio.
+     * Menú principal del ejercicio.
      */
     public static void main(String[] args) {
         byte option = 0;
         String[] mainMenu = { 
-            "MySQL: Lista de pelÃ­culas",
+            "MySQL: Lista de películas",
             "SQL Server",
             "PostgreSQL",
             "SQLite"
@@ -22,7 +22,7 @@ public class Main {
         do {
             Console.showMenu("CONEXIONES A BASES DE DATOS", mainMenu);
             try {
-                option = (byte)Console.readNumber(Console.eof + "Escoge una opciÃ³n: ", "byte");
+                option = (byte)Console.readNumber(Console.eof + "Escoge una opción: ", "byte");
                 System.out.println();
                 switch(option) {
                     case 1:
@@ -42,10 +42,10 @@ public class Main {
                         break;
                 }
             } catch (Exception e) {
-                System.out.println(Console.eof + "OpciÃ³n no vÃ¡lida, intente lo de nuevo..." + Console.eof);
+                System.out.println(Console.eof + "Opción no válida, intente lo de nuevo..." + Console.eof);
                 option = 1;
             }
         } while (Console.inRange((int)option, 1, mainMenu.length));
-        System.out.println("Gracias por utilizar nuestra aplicaciÃ³n Â¡Que tengas un buen dÃ­a! ");
+        System.out.println("Gracias por utilizar nuestra aplicación ¡Que tengas un buen día! ");
     } 
 }

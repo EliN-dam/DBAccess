@@ -28,11 +28,11 @@ public class Database {
     }
     
     /**
-     * Realiza una conexiÃ³n a la base de datos en base a los parametros seleccionados.
-     * @param connection String con el SGBD, la direcciÃ³n, el puerto, y la base de datos.
+     * Realiza una conexión a la base de datos en base a los parametros seleccionados.
+     * @param connection String con el SGBD, la dirección, el puerto, y la base de datos.
      * @param user Usuario de la base de datos.
-     * @param pass ContraseÃ±a del usuario de la base de datos.
-     * @return El objeto creado con la conexiÃ³n a la base de datos.
+     * @param pass Contraseña del usuario de la base de datos.
+     * @return El objeto creado con la conexión a la base de datos.
      * @throws SQLException 
      */
 
@@ -42,7 +42,7 @@ public class Database {
     }  
     
     /**
-     * Realiza una consulta de selecciÃ³n a la base de datos, almacena y muestra 
+     * Realiza una consulta de selección a la base de datos, almacena y muestra 
      * sus resultados.
      * https://www.arquitecturajava.com/jdbc-prepared-statement-y-su-manejo/
      * https://www.javatpoint.com/PreparedStatement-interface
@@ -55,7 +55,7 @@ public class Database {
                         this.password);
                 PreparedStatement stmt = conn.prepareStatement(
                     query,
-                    ResultSet.TYPE_SCROLL_SENSITIVE, // Permite navegar hacia atrÃ¡s en el ResultSet.
+                    ResultSet.TYPE_SCROLL_SENSITIVE, // Permite navegar hacia atrás en el ResultSet.
                     ResultSet.CONCUR_READ_ONLY
                 );
                 ResultSet result = stmt.executeQuery();
@@ -68,12 +68,12 @@ public class Database {
     }
     
     /**
-     * Recorre los resultados de la consulta midiendo los tamaÃ±os de cada columna 
+     * Recorre los resultados de la consulta midiendo los tamaños de cada columna 
      * y el total de la tabla necesarios para dibujar la tabla.
      * @param result El resultado de la consulta realizada.
      * @return <ul>
-     *              <li>True - Si ha conseguidos y registrado los tamaÃ±os</li>
-     *              <li>False - Si no ha podido obtener los tamaÃ±os</li>
+     *              <li>True - Si ha conseguidos y registrado los tamaños</li>
+     *              <li>False - Si no ha podido obtener los tamaños</li>
      *         </ul>
      * @throws SQLException 
      */
@@ -110,7 +110,7 @@ public class Database {
      * Dibuja una tabla en consola mostrando los resultados de la consulta.
      * @param result El resultado de la consulta.
      * @param tableName Nombre de la tabla o vista.
-     * @param sizes Los tamaÃ±os de cada una de las columnas.
+     * @param sizes Los tamaños de cada una de las columnas.
      * @throws SQLException 
      */
     public void printTable(ResultSet result, int[] sizes, String tableName) throws SQLException{
@@ -127,7 +127,7 @@ public class Database {
     }
     
     /**
-     * Dibuja la cabecera con el tÃ­tulo de la tabla.
+     * Dibuja la cabecera con el título de la tabla.
      * @param tableName Nombre de la tabla o vista.
      * @param totalSize Define la longitud total de la tabla.
      */
@@ -148,8 +148,8 @@ public class Database {
     
     /**
      * Dibuja la cabecera de la tabla con los nombres de las columnas.
-     * @param sizes Los tamaÃ±os de cada una de las columnas.
-     * @param data Datos de la consulta como los nombres de las columnas o su nÃºmero.
+     * @param sizes Los tamaños de cada una de las columnas.
+     * @param data Datos de la consulta como los nombres de las columnas o su número.
      * @param interline Cadena de caracteres con los bordes entre filas.
      * @throws SQLException 
      */
@@ -170,8 +170,8 @@ public class Database {
     /**
      * Dibuja por consola las filas con los registros almacenados de la consulta.
      * @param result El resultado de la consulta.
-     * @param sizes Los tamaÃ±os de cada una de las columnas.
-     * @param nColumns NÃºmero de columnas que ha devuelto la consulta.
+     * @param sizes Los tamaños de cada una de las columnas.
+     * @param nColumns Número de columnas que ha devuelto la consulta.
      * @param totalSize Define la longitud total de las filas.
      * @param interline Cadena de caracteres con los bordes entre filas.
      * @throws SQLException 
@@ -197,12 +197,13 @@ public class Database {
     }
     
     /** 
-     * Realiza un consulta de inserciÃ³n en una tabla de la base de datos.
+     * Realiza un consulta de inserción, actualización o eliminación en una tabla 
+     * de la base de datos.
      * https://stackoverflow.com/questions/21872040/jdbc-inserting-date-values-into-mysql
      * @param query La consulta.
-     * @param values Valores a insertar en el mismo orden que la consulta.
+     * @param values Parámetros en orden que la consulta.
      */
-    public void insert(String query, Object[] values){
+    public void query(String query, Object[] values){
         try (
                 Connection conn = this.connect(this.connectionString, this.login, 
                         this.password);
@@ -212,14 +213,19 @@ public class Database {
                     ResultSet.CONCUR_READ_ONLY
                 );
         ){
+            // stmt.getParameterMetaData().getParameterCount()
             for (int i = 0; i < values.length; i++){
                 stmt.setObject(i + 1, values[i]);
             }
             int rows = stmt.executeUpdate();
-            System.out.println("La inserciÃ³n se ha realizado con Ã©xito, " + rows
-                               + " lÃ­neas afectadas.");
+            if (rows > 0)
+                System.out.println("La operación se ha realizado con éxito, " 
+                                  + rows + " líneas afectadas.");
+            else
+                System.out.println("No se han producido cambios, " + rows + " "
+                                  + "lineas afectadas.");
         } catch (SQLException e){
-            System.out.println("\nNo se ha podido realizar la inserciÃ³n en la "
+            System.out.println("\nNo se ha podido realizar la operación en la "
                     + "base de datos: ");
             e.printStackTrace();
         }
