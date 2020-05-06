@@ -84,7 +84,7 @@ public class MySQL {
                     case 5:
                         this.mysql.select("SELECT FID, title, description, "
                                 + "category, price, length, rating FROM film_list"
-                                + " LIMIT 25;", "film_list");
+                                + ";", "film_list");
                         Console.toContinue();
                         break;
                 }

@@ -2,11 +2,11 @@ package dbaccess;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import com.mysql.cj.jdbc.MysqlDataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
-
 /**
  * Clase que contiene una serie de metodos para conectar y trabajar con bases de datos.
  * @author zelda
@@ -29,16 +29,23 @@ public class Database {
     
     /**
      * Realiza una conexión a la base de datos en base a los parametros seleccionados.
-     * @param connection String con el SGBD, la dirección, el puerto, y la base de datos.
+     * @param connection String con el SGBD, la dirección, el puerto, y la base 
+     * de datos.
+     * https://www.journaldev.com/2509/java-datasource-jdbc-datasource-example
      * @param user Usuario de la base de datos.
      * @param pass Contraseña del usuario de la base de datos.
      * @return El objeto creado con la conexión a la base de datos.
      * @throws SQLException 
+     * 
      */
-
     public Connection connect(String connection, String user, String pass) 
             throws SQLException{
-        return DriverManager.getConnection(connection, user, pass);
+        MysqlDataSource ds = new MysqlDataSource();
+        ds.setURL(connection);
+        ds.setUser(user);
+        ds.setPassword(pass);
+        //return DriverManager.getConnection(connection, user, pass);
+        return ds.getConnection();
     }  
     
     /**
