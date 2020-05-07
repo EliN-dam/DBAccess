@@ -113,19 +113,42 @@ public class Console {
     }
     
     /**
+     * Ask the user for confirmation.
+     * @param message The confirmation question.
+     * @return <ul>
+     *             <li>True - If the user type the character 'S'</li>
+     *             <li>False - If the user type the character 'N'</li> 
+     *         </ul>
+     */
+    public static boolean makeSure(String message){
+        char answer;
+        boolean validChar = false;
+        do {
+            answer = Console.readCharacter(message + "(S/N) ");
+            if (Console.validateQuestion(answer))
+                validChar = true;
+            else
+                System.out.println("Opción no válida... ");
+        } while(!validChar);
+        if (Character.toLowerCase(answer) == 's')
+            return true;
+        else
+            return false;
+    }
+    
+    
+    /**
      * Validate a returned character match with the requested value.
      * @param character The character write by the user.
      * @return <ul>
      *             <li>True - If mached</li>
      *             <li>False - If doesn't mached</li> 
-     *         <ul>
+     *         </ul>
      */
     public static boolean validateQuestion(char character){
-        switch (character){
+        switch (Character.toLowerCase(character)){
             case 's':
-            case 'S':
             case 'n':
-            case 'N':
                 return true;
             default:
                 return false;
@@ -179,5 +202,24 @@ public class Console {
                 System.out.println("El número máximo de caracteres es " + 
                         maxLength + "... ");
         } while (true);
+    }
+    
+    /**
+     * Ask the user for an email and check it if valid.
+     * https://howtodoinjava.com/regex/java-regex-validate-email-address/
+     * @param message(String) Message asking the user.
+     * @return A valid email. 
+     */
+    public static String validEmail(String message){
+        do {
+            String line = readLine(message).trim();
+            String regex = "^[\\w!#$%&’*+/=?`{|}~^-]+(?:\\.[\\w!#$%&’*+/=?"
+                    + "`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";
+            if (line.matches(regex))
+                return line;
+            else
+                System.out.println("Debes introducir una dirección de correo "
+                        + "válida... ");
+        } while(true);
     }
 }

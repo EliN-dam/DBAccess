@@ -141,7 +141,6 @@ public class Database {
         } catch (SQLException e){
             System.out.println("No se ha podido realizar la consulta a la base"
                     + " de datos");
-            //e.printStackTrace();
         }
     }
     
@@ -292,6 +291,8 @@ public class Database {
      * @param values Parámetros en orden que la consulta.
      */
     public void query(String query, Object[] values){
+        if (values == null)
+            return; // caso en el que no confirma un Delete.
         try (
                 Connection conn = this.connect();
                 PreparedStatement stmt = conn.prepareStatement(

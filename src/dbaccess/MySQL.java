@@ -103,8 +103,9 @@ public class MySQL implements Query {
     @Override
     public Object[] entryValues(){
         Object[] values = new Object[5];
-        values[0] = Console.readLine("Escribe el título de la película: ").trim();
-        values[1] = Console.readLine("Escribe una descipción de la película: ").trim();
+        values[0] = Console.validString("Escribe el título de la película: ", 128);
+        values[1] = Console.readLine("Escribe una descipción de la película: ")
+                .trim();
         values[2] = Console.validInt("Escribe el año de estreno: ");
         values[3] = getLanguage();
         values[4] = Console.validInt("Por último, escribe la duración del metraje"
@@ -193,6 +194,9 @@ public class MySQL implements Query {
         Object[] values = new Object[1];
         values[0] = Console.readLine("Escribe el título de la película a "
                                     + "eliminar: ").trim();
-        return values;
+        if(Console.makeSure("Los datos almacenados se perderán ¿Está seguro?"))
+            return values;
+        else
+            return null;
     }
 }

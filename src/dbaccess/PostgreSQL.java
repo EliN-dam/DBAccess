@@ -43,7 +43,7 @@ public class PostgreSQL implements Query {
         byte option = 0;
         String[] mainMenu = { 
             "Añadir un cliente a la base de datos",
-            "Modificar un cliente",
+            "Actualizar el contactos de un cliente",
             "Eliminar un cliente ",
             "Buscar un cliente",
             "Mostrar un listado de clientes",
@@ -56,19 +56,30 @@ public class PostgreSQL implements Query {
                 System.out.println();
                 switch(option) {
                     case 1:
-
+                        this.postgre.query("INSERT INTO \"Customer\"(\"CustomerId\","
+                                + " \"FirstName\", \"LastName\", \"Address\", "
+                                + "\"City\", \"Country\", \"Phone\", \"Email\") "
+                                + "VALUES (?,?,?,?,?,?,?,?)", this.entryValues());
                         Console.toContinue();
                         break;
                     case 2:
-
+                        this.postgre.query("UPDATE \"Customer\" SET \"Phone\" = ?,"
+                                + "\"Email\" = ? WHERE \"FirstName\" = ? AND "
+                                + "\"LastName\" = ?;", this.updateValues());
                         Console.toContinue();
                         break;
                     case 3:
-
+                        this.postgre.query("DELETE FROM \"Customer\" WHERE "
+                                + "\"CustomerId\" = ?;", this.deleteValues());
                         Console.toContinue();
                         break;
                     case 4:
-
+                        this.postgre.select("SELECT \"CustomerId\", \"FirstName\""
+                                + ", \"LastName\", \"Address\", \"City\", "
+                                + "\"Country\", \"Phone\", \"Email\" FROM "
+                                + "\"Customer\" WHERE \"FirstName\" = ? AND "
+                                + "\"LastName\" = ?;", "Customer", 
+                                this.searchValues());
                         Console.toContinue();
                         break;
                     case 5:
@@ -100,25 +111,44 @@ public class PostgreSQL implements Query {
     
     @Override
     public Object[] entryValues(){
-        Object[] values = new Object[4];
+        Object[] values = new Object[8];
+        values[0] = Console.validInt("Escribe el ID del nuevo cliente: ");
+        values[1] = Console.validString("Escribe el nombre del cliente: ", 40);
+        values[2] = Console.validString("Escribe los apellidos del cliente: ", 20);
+        values[3] = Console.validString("Introduce la dirección del cliente: ", 70);
+        values[4] = Console.validString("Introduce la ciudad: ", 40);
+        values[5] = Console.validString("Introduce el país: ", 40);
+        values[6] = Console.validString("Introduce el teléfono del cliente: ", 24);
+        values[7] = Console.validEmail("Introduce el email de contacto: ");
         return values;
     }
     
     @Override
     public Object[] searchValues(){
-        Object[] values = new Object[4];
+        Object[] values = new Object[2];
+        values[0] = Console.readLine("Escribe el nombre del cliente: ").trim();
+        values[1] = Console.readLine("Escribe los apellidos del cliente: ").trim();
+        
         return values;
     }
     
     @Override
     public Object[] updateValues(){
         Object[] values = new Object[4];
+        values[2] = Console.readLine("Escribe el nombre del cliente: ").trim();
+        values[3] = Console.readLine("Escribe los apellidos del cliente: ").trim();
+        values[0] = Console.validString("Introduce el nuevo teléfono: ", 24);
+        values[1] = Console.validEmail("Introduce el nuevo email de contacto: ");
         return values;
     }
     
     @Override
     public Object[] deleteValues(){
-        Object[] values = new Object[4];
-        return values;
+        Object[] values = new Object[1];
+        values[0] = Console.validInt("Escribe el ID del cliente a eliminar: ");
+        if(Console.makeSure("Los datos almacenados se perderán ¿Está seguro?"))
+            return values;
+        else
+            return null;
     }
 }

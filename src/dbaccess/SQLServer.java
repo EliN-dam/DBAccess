@@ -95,8 +95,8 @@ public class SQLServer implements Query {
     @Override
     public Object[] entryValues(){
         Object[] values = new Object[4];
-        values[1] = Console.readLine("Escribe una descripción del componente: ")
-                .trim();
+        values[1] = Console.validString("Escribe una descripción del componente:"
+                + " ", 255);
         values[0] = Console.validString("Escribe la clave del producto: ", 20);
         values[2] = Console.validDouble("Escribe el precio del producto: ");
         values[3] = getTypes();
@@ -206,6 +206,9 @@ public class SQLServer implements Query {
         Object[] values = new Object[1];
         values[0] = Console.validString("Escribe la clave del producto a eliminar:"
                 + " ", 20);
-        return values;
+        if(Console.makeSure("Los datos almacenados se perderán ¿Está seguro?"))
+            return values;
+        else
+            return null;
     }
 }
