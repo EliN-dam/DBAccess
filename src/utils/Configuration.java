@@ -3,28 +3,36 @@ package utils;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.Properties;
 
 /**
- * Clase con los m茅todos que nos permitira trabajar con un fichero externo de configuraci贸n.
+ * Clase con los m閠odos que nos permitira trabajar con un fichero externo de 
+ * configuraci髇.
  * https://docs.oracle.com/javase/8/docs/api/java/util/Properties.html
  * https://mkyong.com/java/java-properties-file-examples/
  * @author zelda
  */
 public class Configuration {
     
-    /**
-     * Carga las propiedades de configuraci贸n desde un archivo externo.
-     * @param url Ruta del archivo de configuraci贸n.
-     * @return Una colecci贸n con las propiedades de configuraci贸n.
+    /** 
+     * Carga las propiedades de configuraci髇 desde un archivo externo.
+     * @param url Ruta del archivo de configuraci髇.
+     * @return Una colecci髇 con las propiedades de configuraci髇.
      */
     public static Properties loadConfig(String url){
-        try (InputStream file = new FileInputStream(url)){
+        try (
+                InputStream is = new FileInputStream(url);
+                /* https://docs.oracle.com/javase/8/docs/api/java/util/Properties.html#load-java.io.InputStream-
+                 * FileInputStream asume que el encoding es ISO-8859-1 */
+                InputStreamReader file = new InputStreamReader(is, "UTF-8");
+            ){
             Properties current = new Properties();
             current.load(file);
             return current;
         } catch (IOException e){
-            System.out.println("No se han podido cargar el archivo de configuraci贸n:");
+            System.out.println("No se han podido cargar el archivo de configuraci髇:");
             e.printStackTrace();
             return null;
         }

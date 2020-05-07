@@ -32,9 +32,8 @@ public class Console {
      */
     public static Number readNumber(String message, String type){
         Scanner in = new Scanner(System.in);
-        type = type.toLowerCase();
         System.out.print(message);
-        switch (type){
+        switch (type.toLowerCase().trim()){
             case "byte":
                 return in.nextByte();
             case "short":
@@ -86,7 +85,7 @@ public class Console {
         if ((value >= min) && (value <= max))
             return true;
         return false;
-    }
+    }     
     
     /**
      * Show a menu in console.
@@ -144,8 +143,41 @@ public class Console {
                 int value = (int)readNumber(message, "int");
                 return value;
             } catch (InputMismatchException e){
-                System.out.println("Debe introducir un valor numÃ©rico... ");
+                System.out.println("Debe introducir un valor numérico... ");
             }
+        } while (true);
+    }
+    
+    /**
+     * Request user for a value until enter a valid decimal value.
+     * @param message(String) Message asking the user.
+     * @return A valid double value introduced by the user. 
+     */
+    public static double validDouble(String message){
+        do {
+            try {
+                double value = (double)readNumber(message, "double");
+                return value;
+            } catch (InputMismatchException e){
+                System.out.println("Debe introducir un valor numérico válido... ");
+            }
+        } while (true);
+    }
+    
+    /**
+     * Request user for a String until enter valid String format base of its length.
+     * @param message(String) Message asking the user.
+     * @param maxLength Max number of characters.
+     * @return A valid formated String introduced by the user. 
+     */
+    public static String validString(String message, int maxLength){
+        do {
+            String line = readLine(message).trim();
+            if (inRange(line.length(), 1, maxLength))
+                return line;
+            else
+                System.out.println("El número máximo de caracteres es " + 
+                        maxLength + "... ");
         } while (true);
     }
 }

@@ -15,7 +15,7 @@ public class Main {
         byte option = 0;
         String[] mainMenu = { 
             "MySQL: Lista de películas",
-            "SQL Server",
+            "SQL Server: Empresa informática",
             "PostgreSQL",
             "SQLite"
         };
@@ -29,8 +29,7 @@ public class Main {
                         new MySQL();
                         break;
                     case 2:
-
-                        Console.toContinue();
+                        new SQLServer();
                         break;
                     case 3:
 
