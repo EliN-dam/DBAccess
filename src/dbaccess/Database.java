@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
+import org.postgresql.ds.PGSimpleDataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
@@ -37,6 +38,8 @@ public class Database {
      * https://www.journaldev.com/2509/java-datasource-jdbc-datasource-example
      * https://www.programcreek.com/java-api-examples/index.php?api=com.mysql.cj.jdbc.MysqlDataSource
      * https://docs.microsoft.com/es-es/sql/connect/jdbc/connection-url-sample?view=sql-server-ver15
+     * https://www.postgresql.org/docs/7.3/jdbc-datasource.html
+     * https://stackoverflow.com/questions/45091981/produce-a-datasource-object-for-postgres-jdbc-programmatically
      * @return El objeto creado con la conexión a la base de datos.
      * @throws SQLException 
      * 
@@ -62,6 +65,17 @@ public class Database {
                 dsSQLServer.setUser(this.login);
                 dsSQLServer.setPassword(this.password);
                 return dsSQLServer.getConnection();
+            case "postgre":
+            case "postgres":
+            case "postgresql":
+                PGSimpleDataSource dsPG = new PGSimpleDataSource();
+                dsPG.setServerNames(new String[]{this.server});
+                if (this.port != 0)
+                    dsPG.setPortNumbers(new int[]{this.port});
+                dsPG.setDatabaseName(this.db);
+                dsPG.setUser(this.login);
+                dsPG.setPassword(this.password);
+                return dsPG.getConnection();
             default:
                 System.out.println(this.dbType.toUpperCase() + ": tipo no soportado.");
                 return null;
@@ -93,8 +107,8 @@ public class Database {
             else
                 System.out.println("La consulta ha devuelto 0 resultados.");
         } catch (SQLException e){
-            System.out.println("\nNo se ha podido realizar la consulta a la base"
-                    + " de datos: ");
+            System.out.println("No se ha podido realizar la consulta a la base"
+                    + " de datos");
             e.printStackTrace();
         }
     }
@@ -125,9 +139,9 @@ public class Database {
                     System.out.println("La consulta ha devuelto 0 resultados.");
             }
         } catch (SQLException e){
-            System.out.println("\nNo se ha podido realizar la consulta a la base"
-                    + " de datos: ");
-            e.printStackTrace();
+            System.out.println("No se ha podido realizar la consulta a la base"
+                    + " de datos");
+            //e.printStackTrace();
         }
     }
     
@@ -298,9 +312,9 @@ public class Database {
                 System.out.println("No se han producido cambios, " + rows + " "
                                   + "lineas afectadas.");
         } catch (SQLException e){
-            System.out.println("\nNo se ha podido realizar la operación en la "
-                    + "base de datos: ");
-            e.printStackTrace();
+            System.out.println("No se ha podido realizar la operación en la "
+                    + "base de datos");
+            //e.printStackTrace();
         }
     }
 }

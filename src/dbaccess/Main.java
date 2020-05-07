@@ -1,5 +1,6 @@
 package dbaccess;
 
+import java.util.InputMismatchException;
 import utils.Console;
 
 /**
@@ -16,8 +17,8 @@ public class Main {
         String[] mainMenu = { 
             "MySQL: Lista de películas",
             "SQL Server: Empresa informática",
-            "PostgreSQL",
-            "SQLite"
+            "PostgreSQL: Gestión de clientes",
+            "SQLite:"
         };
         do {
             Console.showMenu("CONEXIONES A BASES DE DATOS", mainMenu);
@@ -32,15 +33,13 @@ public class Main {
                         new SQLServer();
                         break;
                     case 3:
-
-                        Console.toContinue();
+                        new PostgreSQL();
                         break;
                     case 4:
-
                         Console.toContinue();
                         break;
                 }
-            } catch (Exception e) {
+            } catch (InputMismatchException e) {
                 System.out.println(Console.eof + "Opción no válida, intente lo de nuevo..." + Console.eof);
                 option = 1;
             }

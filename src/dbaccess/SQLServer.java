@@ -1,5 +1,6 @@
 package dbaccess;
 
+import java.util.InputMismatchException;
 import utils.Console;
 import utils.Configuration;
 import java.util.Properties;
@@ -34,7 +35,8 @@ public class SQLServer implements Query {
     }
     
     /**
-     * Muestra el menu con los diferentes acciones que realiza esta clase.
+     * Muestra el menu con los diferentes acciones que sobre el catálogo de 
+     * componentes.
      */
     public void menu(){
         byte option = 0;
@@ -78,7 +80,7 @@ public class SQLServer implements Query {
                         Console.toContinue();
                         break;
                 }
-            } catch (Exception e) {
+            } catch (InputMismatchException e) {
                 System.out.println(Console.eof + "Opción no válida, intente lo de nuevo..." + Console.eof);
                 option = 1;
             }
@@ -161,7 +163,7 @@ public class SQLServer implements Query {
                     case 15:
                         return 75;
                 }
-            } catch (Exception e) {
+            } catch (InputMismatchException e) {
                 System.out.println(Console.eof + "Tipo no válido, intente lo de "
                         + "nuevo..." + Console.eof);
                 value = 1;

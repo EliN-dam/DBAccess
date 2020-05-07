@@ -1,11 +1,12 @@
 package dbaccess;
 
+import java.util.InputMismatchException;
 import utils.Console;
 import utils.Configuration;
 import java.util.Properties;
 
 /**
- * Clase que  trabaja con una base de datos MySQL que contiene información relativa 
+ * Clase que trabaja con una base de datos MySQL que contiene información relativa 
  * a películas.
  * @author zelda
  */
@@ -88,7 +89,7 @@ public class MySQL implements Query {
                         Console.toContinue();
                         break;
                 }
-            } catch (Exception e) {
+            } catch (InputMismatchException e) {
                 System.out.println(Console.eof + "Opción no válida, intente lo de nuevo..." + Console.eof);
                 option = 1;
             }
