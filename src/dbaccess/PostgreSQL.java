@@ -43,7 +43,7 @@ public class PostgreSQL implements Query {
         byte option = 0;
         String[] mainMenu = { 
             "Añadir un cliente a la base de datos",
-            "Actualizar el contactos de un cliente",
+            "Actualizar los contactos de un cliente",
             "Eliminar un cliente ",
             "Buscar un cliente",
             "Mostrar un listado de clientes",
@@ -99,8 +99,7 @@ public class PostgreSQL implements Query {
                                 + "schemaname != 'pg_catalog' AND schemaname != "
                                 + "'information_schema';", "TABLAS");
                         Console.toContinue();
-                        break;
-                        
+                        break;     
                 }
             } catch (InputMismatchException e) {
                 System.out.println(Console.eof + "Opción no válida, intente lo de nuevo..." + Console.eof);
@@ -109,6 +108,10 @@ public class PostgreSQL implements Query {
         } while (Console.inRange((int)option, 1, mainMenu.length));
     }
     
+    /**
+     * Solicita al usuario los datos del cliente que se desea añadir.
+     * @return Array con los valores introducidos por el usuario.
+     */
     @Override
     public Object[] entryValues(){
         Object[] values = new Object[8];
@@ -123,15 +126,24 @@ public class PostgreSQL implements Query {
         return values;
     }
     
+    /**
+     * Solicita al usuario los nombre y apellidos del cliente sobre el que se 
+     * desea realizar la búsqueda.
+     * @return Array con los valores introducidos por el usuario.
+     */
     @Override
     public Object[] searchValues(){
         Object[] values = new Object[2];
         values[0] = Console.readLine("Escribe el nombre del cliente: ").trim();
         values[1] = Console.readLine("Escribe los apellidos del cliente: ").trim();
-        
         return values;
     }
     
+    /**
+     * Solicita al usuario los nombres y apellidos del cliente y sus formas de 
+     * contacto.
+     * @return Array con los valores introducidos por el usuario.
+     */
     @Override
     public Object[] updateValues(){
         Object[] values = new Object[4];
@@ -142,6 +154,11 @@ public class PostgreSQL implements Query {
         return values;
     }
     
+    /**
+     * Solicita al usuario los nombre y apellidos del cliente que se desea eliminar.
+     * @return Array con los valores facilitador por el usuario. Devuelve NULL 
+     * si el usuario no confirma la eliminación del cliente.
+     */
     @Override
     public Object[] deleteValues(){
         Object[] values = new Object[1];

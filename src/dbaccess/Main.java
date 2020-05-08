@@ -18,7 +18,7 @@ public class Main {
             "MySQL: Lista de películas",
             "SQL Server: Empresa informática",
             "PostgreSQL: Gestión de clientes",
-            "SQLite:"
+            "SQLite: Gestión de empleados"
         };
         do {
             Console.showMenu("CONEXIONES A BASES DE DATOS", mainMenu);
@@ -36,7 +36,7 @@ public class Main {
                         new PostgreSQL();
                         break;
                     case 4:
-                        Console.toContinue();
+                        new SQLite();
                         break;
                 }
             } catch (InputMismatchException e) {

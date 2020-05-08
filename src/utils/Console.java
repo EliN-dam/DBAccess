@@ -124,7 +124,7 @@ public class Console {
         char answer;
         boolean validChar = false;
         do {
-            answer = Console.readCharacter(message + "(S/N) ");
+            answer = Console.readCharacter(message + " (S/N) ");
             if (Console.validateQuestion(answer))
                 validChar = true;
             else

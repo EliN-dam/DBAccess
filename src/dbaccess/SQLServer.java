@@ -173,7 +173,7 @@ public class SQLServer implements Query {
     }
     
     /**
-     * Solcita al usuario la clave del componente a buscar.
+     * Solicita al usuario la clave del componente a buscar.
      * @return La clave del artículo que se quiere encontrar.
      */
     @Override
@@ -199,7 +199,8 @@ public class SQLServer implements Query {
     
     /**
      * Solicita al usuario la clave del artículo que se desea eliminar.
-     * @return Array con los valores facilitador por el usuario.
+     * @return Array con los valores facilitador por el usuario. Devuelve NULL 
+     * si el usuario no confirma la eliminación del artículo.
      */
     @Override
     public Object[] deleteValues(){

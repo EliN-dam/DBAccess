@@ -97,8 +97,9 @@ public class MySQL implements Query {
     }
     
     /**
-     * Solicita al usuario valores d una película para añadirla a la base de datos.
-     * @return Array con los valores introducidos por el usuario.
+     * Solicita al usuario valores de una película para añadirla a la base de datos.
+     * @return Array con los valores introducidos por el usuario. Devuelve NULL 
+     * si el usuario no confirma la eliminación de la película.
      */
     @Override
     public Object[] entryValues(){

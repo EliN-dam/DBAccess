@@ -5,10 +5,12 @@ import java.sql.DriverManager;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
 import org.postgresql.ds.PGSimpleDataSource;
+import org.sqlite.SQLiteDataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
+
 /**
  * Clase que contiene una serie de metodos para conectar y trabajar con bases de datos.
  * @author zelda
@@ -34,12 +36,23 @@ public class Database {
     }
     
     /**
+     * Constructor para la base de datos locales (SQLite). 
+     */
+    public Database(String path, String dbFile, String dbType){
+        this.server = path;
+        this.db = dbFile;
+        this.dbType = dbType.toLowerCase().trim();
+        this.login = this.password = ""; // Inicializamos las variables.
+    }
+    
+    /**
      * Realiza una conexión a la base de datos en base a los parametros seleccionados.
      * https://www.journaldev.com/2509/java-datasource-jdbc-datasource-example
      * https://www.programcreek.com/java-api-examples/index.php?api=com.mysql.cj.jdbc.MysqlDataSource
      * https://docs.microsoft.com/es-es/sql/connect/jdbc/connection-url-sample?view=sql-server-ver15
      * https://www.postgresql.org/docs/7.3/jdbc-datasource.html
      * https://stackoverflow.com/questions/45091981/produce-a-datasource-object-for-postgres-jdbc-programmatically
+     * https://github.com/xerial/sqlite-jdbc
      * @return El objeto creado con la conexión a la base de datos.
      * @throws SQLException 
      * 
@@ -76,6 +89,14 @@ public class Database {
                 dsPG.setUser(this.login);
                 dsPG.setPassword(this.password);
                 return dsPG.getConnection();
+            case "sqlite":
+                /** setDataBaseName() no funciona!!!
+                 * https://stackoverflow.com/questions/41230234/using-datasource-to-connect-to-sqlite-with-xerial-sqlite-jdbc-driver
+                 * https://stackoverflow.com/questions/1525444/how-to-connect-sqlite-with-java
+                 */
+                SQLiteDataSource dsLite = new SQLiteDataSource();
+                dsLite.setUrl(dsLite.getUrl() + this.server + this.db);
+                return dsLite.getConnection();
             default:
                 System.out.println(this.dbType.toUpperCase() + ": tipo no soportado.");
                 return null;
@@ -109,7 +130,7 @@ public class Database {
         } catch (SQLException e){
             System.out.println("No se ha podido realizar la consulta a la base"
                     + " de datos");
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
     
@@ -145,8 +166,67 @@ public class Database {
     }
     
     /**
+     * Realiza una consulta de selección a la base de datos, almacena y muestra 
+     * sus resultados. Utiliza este método para bases de datos SQLite.
+     * @param query La consulta a realizar.
+     * @param tableName Nombre de la tabla.
+     */
+    public void selectLite(String query, String tableName){
+        try ( // SQLite y yo no nos vamos llevar bien...
+                Connection conn = this.connect();
+                PreparedStatement stmt = conn.prepareStatement(query);
+                ResultSet first = stmt.executeQuery();
+            ){
+            int[] sizes = this.loadSizes(first);
+            try (ResultSet second = stmt.executeQuery()){
+                if (sizes[sizes.length - 1] > 0)
+                    this.printTable(second, sizes, tableName);
+                else
+                    System.out.println("La consulta ha devuelto 0 resultados.");
+            }
+        } catch (SQLException e){
+            System.out.println("No se ha podido realizar la consulta a la base"
+                    + " de datos");
+            //e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Realiza una consulta de selección a la base de datos utilizando parámetros
+     * como filtros, y muestra sus resultados. Utiliza este método para bases de 
+     * datos SQLite.
+     * @param query La consulta a realizar.
+     * @param tableName Nombre de la tabla.
+     * @param values Parámetros en orden que la consulta.
+     */
+    public void selectLite(String query, String tableName, Object[] values){
+        try (
+                Connection conn = this.connect();
+                PreparedStatement stmt = conn.prepareStatement(query);
+            ){
+            for (int i = 0; i < values.length; i++){
+                stmt.setObject(i + 1, values[i]);
+            }
+            try (ResultSet first = stmt.executeQuery()){
+                int[] sizes = this.loadSizes(first);
+                try (ResultSet second = stmt.executeQuery()){
+                    if (sizes[sizes.length - 1] > 0)
+                        this.printTable(second, sizes, tableName);
+                    else
+                        System.out.println("La consulta ha devuelto 0 resultados.");
+                }
+            }
+        } catch (SQLException e){
+            System.out.println("No se ha podido realizar la consulta a la base"
+                    + " de datos");
+            //e.printStackTrace();
+        }
+    }
+    
+    /**
      * Recorre los resultados de la consulta midiendo los tamaños de cada columna 
      * y el total de la tabla necesarios para dibujar la tabla.
+     * ESTO DEBERIA HACERLO CON UNA CONSULTA PREVIA.
      * @param result El resultado de la consulta realizada.
      * @return <ul>
      *              <li>True - Si ha conseguidos y registrado los tamaños</li>
@@ -158,17 +238,18 @@ public class Database {
         if (result != null){
             ResultSetMetaData mData = result.getMetaData();
             int nColumns = mData.getColumnCount();
-            int sizes[] = new int[nColumns + 1];
+            int sizes[] = new int[nColumns + 2];
             int length;
             String value;
-            result.beforeFirst(); // Nos aseguramos que empieza por el principio.
+            if (!this.dbType.equals("sqlite"))
+                result.beforeFirst(); // Nos aseguramos que empieza por el principio.
             for (int i = 1; i <= nColumns; i++){ // Contamos la cabecera.
                 length = mData.getColumnLabel(i).length();
                     if (sizes[i] < length)
                         sizes[i] = length;
             }
             while (result.next()){ // Contamos los resultados.
-                for (int i = 1; i <= nColumns; i++){
+                for (int i = 2; i <= nColumns; i++){
                     value = result.getString(i);
                     if (value != null)
                         length = value.length();
@@ -177,9 +258,10 @@ public class Database {
                     if (sizes[i] < length)
                         sizes[i] = length;   
                 }
+                sizes[sizes.length - 1]++; // Cuenta las filas.
             }
             length = 0; // Reinicio la variable para reutilizarla.
-            for (int i = 1; i < sizes.length; i++){
+            for (int i = 1; i < sizes.length - 1; i++){
                 length += sizes[i];
             }
             sizes[0] = length; // Almaceno la longitud total.
@@ -200,7 +282,7 @@ public class Database {
         int nColumns = mData.getColumnCount();
         int maxSize = sizes[0] + (nColumns * 2) + (nColumns - 1);
         String interline = "+";
-        for (int i = 1; i < sizes.length; i++)
+        for (int i = 1; i < nColumns + 1; i++) // +1 porque empieza en 1.
             interline += new String(new char[sizes[i]]).replace('\0', '=') 
                     + "==" + "+"; 
         this.printTitle(tableName, maxSize);
@@ -262,7 +344,9 @@ public class Database {
             String interline) throws SQLException{
         int length;
         String value;
-        result.beforeFirst(); // Nos aseguramos que empieza por el principio.
+        if (!this.dbType.equals("sqlite"))
+            result.beforeFirst(); // Nos aseguramos que empieza por el principio.
+        int fuksqlite = 0; 
         while (result.next()){
             System.out.print("|");
             for (int i = 1; i <= nColumns; i++){
@@ -274,10 +358,17 @@ public class Database {
                 System.out.printf("%" + (sizes[i] - length + 2) / 2 +
                                   "s%-" + length +
                                   "s%" + (sizes[i] - length + 3)  / 2 + "s|",
-                                  "", result.getString(i), "");
+                                  "", value, "");
             }
-            if (!result.isLast())
-                System.out.println("\n" + interline);
+            // Si no es es lá última línea...
+            if (!this.dbType.equals("sqlite")){
+                if (!result.isLast())
+                    System.out.println("\n" + interline);
+            } else {
+                fuksqlite++; 
+                if (sizes[sizes.length - 1] != fuksqlite)
+                    System.out.println("\n" + interline);
+            }
         }
         System.out.println("\n+" + new String(new char[totalSize]).replace('\0', '=') 
                 + "+");
@@ -295,12 +386,8 @@ public class Database {
             return; // caso en el que no confirma un Delete.
         try (
                 Connection conn = this.connect();
-                PreparedStatement stmt = conn.prepareStatement(
-                    query,
-                    ResultSet.TYPE_SCROLL_SENSITIVE,
-                    ResultSet.CONCUR_READ_ONLY
-                );
-        ){
+                PreparedStatement stmt = conn.prepareStatement(query);
+            ){
             // stmt.getParameterMetaData().getParameterCount()
             for (int i = 0; i < values.length; i++){
                 stmt.setObject(i + 1, values[i]);

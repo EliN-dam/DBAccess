@@ -5,6 +5,7 @@
         <group>
             <file>file:/D:/Documentos/NetBeansProjects/DBAccess/src/dbaccess/SQLServer.java</file>
             <file>file:/D:/Documentos/NetBeansProjects/DBAccess/src/dbaccess/MySQL.java</file>
+            <file>file:/D:/Documentos/NetBeansProjects/DBAccess/src/dbaccess/PostgreSQL.java</file>
             <file>file:/D:/Documentos/NetBeansProjects/DBAccess/src/dbaccess/Main.java</file>
             <file>file:/D:/Documentos/NetBeansProjects/DBAccess/src/utils/Configuration.java</file>
             <file>file:/D:/Documentos/NetBeansProjects/DBAccess/src/utils/Console.java</file>
