@@ -18,14 +18,14 @@ You can found the script to create this database in the folder *db/EmpresasInfor
 Your can dowsload the database in the following link:
 https://github.com/lerocha/chinook-database
 
-### SQLite
+### SQLite - Northwind
 The dababase is included in the project, in the folder *db/Northwind.db*, you can also download the database in the following link bellow:
 https://github.com/jpwhite3/northwind-SQLite3
 
 
 Configuration
 -------------
-For the connection to the databases, there are in the *config/* folder the files with the required parameters for the configuration of access to the different database management systems.
+For the connection to the databases, there are in the *config* folder the files with the required parameters for the configuration of access to the different database management systems.
 
 You must fill in the following parameters:
 * **url** - The address of the database server.

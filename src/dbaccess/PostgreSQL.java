@@ -41,6 +41,8 @@ public class PostgreSQL implements Query {
      */
     public void menu(){
         byte option = 0;
+        int[] sizes;
+        Object[] values;
         String[] mainMenu = { 
             "Añadir un cliente a la base de datos",
             "Actualizar los contactos de un cliente",
@@ -56,16 +58,23 @@ public class PostgreSQL implements Query {
                 System.out.println();
                 switch(option) {
                     case 1:
-                        this.postgre.query("INSERT INTO \"Customer\"(\"CustomerId\","
-                                + " \"FirstName\", \"LastName\", \"Address\", "
-                                + "\"City\", \"Country\", \"Phone\", \"Email\") "
+                        this.postgre.query("INSERT INTO \"Customer\"("
+                                + "\"CustomerId\", "
+                                + "\"FirstName\", "
+                                + "\"LastName\", "
+                                + "\"Address\", "
+                                + "\"City\", "
+                                + "\"Country\", "
+                                + "\"Phone\", "
+                                + "\"Email\") "
                                 + "VALUES (?,?,?,?,?,?,?,?)", this.entryValues());
                         Console.toContinue();
                         break;
                     case 2:
-                        this.postgre.query("UPDATE \"Customer\" SET \"Phone\" = ?,"
-                                + "\"Email\" = ? WHERE \"FirstName\" = ? AND "
-                                + "\"LastName\" = ?;", this.updateValues());
+                        this.postgre.query("UPDATE \"Customer\" "
+                                + "SET \"Phone\" = ?,\"Email\" = ? "
+                                + "WHERE \"FirstName\" = ? AND \"LastName\" = ?;",
+                                this.updateValues());
                         Console.toContinue();
                         break;
                     case 3:
@@ -74,12 +83,30 @@ public class PostgreSQL implements Query {
                         Console.toContinue();
                         break;
                     case 4:
-                        this.postgre.select("SELECT \"CustomerId\", \"FirstName\""
-                                + ", \"LastName\", \"Address\", \"City\", "
-                                + "\"Country\", \"Phone\", \"Email\" FROM "
-                                + "\"Customer\" WHERE \"FirstName\" = ? AND "
-                                + "\"LastName\" = ?;", "Customer", 
-                                this.searchValues());
+                        values = this.searchValues();
+                        sizes = this.postgre.loadSizeByQuery("SELECT "
+                                + "MAX(LENGTH(\"CustomerId\"::varchar(5))) as CustomerId, "
+                                + "MAX(LENGTH(\"FirstName\")) as FirstName, "
+                                + "MAX(LENGTH(\"LastName\")) as LastName, "
+                                + "MAX(LENGTH(\"Address\")) as Address, "
+                                + "MAX(LENGTH(\"City\")) as City, "
+                                + "MAX(LENGTH(\"Country\")) as Country, "
+                                + "MAX(LENGTH(\"Phone\")) as Phone, "
+                                + "MAX(LENGTH(\"Email\")) as Email, "
+                                + "COUNT(\"CustomerId\") FROM \"Customer\" "
+                                + "WHERE \"FirstName\" = ? AND \"LastName\" = ?;",
+                                values);
+                        this.postgre.select("SELECT "
+                                + "\"CustomerId\", "
+                                + "\"FirstName\", "
+                                + "\"LastName\", "
+                                + "\"Address\", "
+                                + "\"City\", "
+                                + "\"Country\", "
+                                + "\"Phone\", "
+                                + "\"Email\" FROM \"Customer\" WHERE "
+                                + "\"FirstName\" = ? AND \"LastName\" = ?;", 
+                                "Customer", sizes, values);
                         Console.toContinue();
                         break;
                     case 5:
@@ -87,17 +114,39 @@ public class PostgreSQL implements Query {
                          * mayusculas hay que escribir los nombre entre comillas.
                          * https://www.postgresql.org/message-id/b7b967e00712070339j5fa60fd1uc873de03e3bd145e%40mail.gmail.com
                          */
-                        this.postgre.select("SELECT \"CustomerId\", \"FirstName\""
-                                + ", \"LastName\", \"Address\", \"City\", "
-                                + "\"Country\", \"Phone\", \"Email\" FROM "
-                                + "\"Customer\";", "Customer");
+                        sizes = this.postgre.loadSizeByQuery("SELECT "
+                                + "MAX(LENGTH(\"CustomerId\"::varchar(5))) as CustomerID, "
+                                + "MAX(LENGTH(\"FirstName\")) as FirstName, "
+                                + "MAX(LENGTH(\"LastName\")) as LastName, "
+                                + "MAX(LENGTH(\"Address\")) as Address, "
+                                + "MAX(LENGTH(\"City\")) as City, "
+                                + "MAX(LENGTH(\"Country\")) as Country, "
+                                + "MAX(LENGTH(\"Phone\")) as Phone, "
+                                + "MAX(LENGTH(\"Email\"))as Email, "
+                                + "COUNT(\"CustomerId\") FROM \"Customer\";");
+                        this.postgre.select("SELECT \"CustomerId\", "
+                                + "\"FirstName\", "
+                                + "\"LastName\", "
+                                + "\"Address\", "
+                                + "\"City\", "
+                                + "\"Country\", "
+                                + "\"Phone\", "
+                                + "\"Email\" "
+                                + "FROM \"Customer\";", "Customer", sizes);
                         Console.toContinue();
                         break;
                     case 6:
+                        sizes = this.postgre.loadSizeByQuery("SELECT "
+                                + "MAX(LENGTH(schemaname)) as schemaname, "
+                                + "MAX(LENGTH(tablename)) as tablename, "
+                                + "MAX(LENGTH(tableowner)) as tableowner, "
+                                + "COUNT(*) FROM pg_catalog.pg_tables "
+                                + "WHERE schemaname != 'pg_catalog' "
+                                + "AND schemaname != 'information_schema';");
                         this.postgre.select("SELECT schemaname, tablename, "
                                 + "tableowner FROM pg_catalog.pg_tables WHERE "
                                 + "schemaname != 'pg_catalog' AND schemaname != "
-                                + "'information_schema';", "TABLAS");
+                                + "'information_schema';", "TABLAS", sizes);
                         Console.toContinue();
                         break;     
                 }

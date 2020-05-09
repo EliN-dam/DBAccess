@@ -1,8 +1,8 @@
 package dbaccess;
 
 /**
- * Interfaz que define como los métodos que deben implementarse para realizar las
- * consultas INSERT, UPDATE y DELETE.
+ * Interfaz que define los métodos que deben implementarse para realizar las
+ * consultas SELECT, INSERT, UPDATE y DELETE.
  * @author zelda
  */
 public interface Query {

@@ -39,6 +39,8 @@ public class SQLite implements Query {
      */
     public void menu(){
         byte option = 0;
+        int[] sizes;
+        Object[] values;
         String[] mainMenu = { 
             "Añadir un empleado a la base de datos",
             "Cambiar la dirección de un empleado",
@@ -70,16 +72,42 @@ public class SQLite implements Query {
                         Console.toContinue();
                         break;
                     case 4:
-                        this.sqlite.selectLite("SELECT EmployeeID, FirstName, "
-                                + "LastName, HireDate, Address, City, HomePhone "
+                        values = this.searchValues();
+                        sizes = this.sqlite.loadSizeByQuery("SELECT "
+                                + "MAX(LENGTH(EmployeeID)) as EmployeeID, "
+                                + "MAX(LENGTH(FirstName)) as FirstName, "
+                                + "MAX(LENGTH(LastName)) as LastName, "
+                                + "MAX(LENGTH(HireDate)) as HireDate, "
+                                + "MAX(LENGTH(Address)) as Address, "
+                                + "MAX(LENGTH(City)) as City, "
+                                + "MAX(LENGTH(HomePhone)) as HomePhone, "
+                                + "COUNT(EMployeeID)"
+                                + "FROM Employees WHERE FirstName = ?;", values);
+                        this.sqlite.select("SELECT "
+                                + "EmployeeID, "
+                                + "FirstName, "
+                                + "LastName, "
+                                + "HireDate, "
+                                + "Address, "
+                                + "City, "
+                                + "HomePhone "
                                 + "FROM Employees WHERE FirstName = ?;", 
-                                "Employees", this.searchValues());
+                                "Employees", sizes, values);
                         Console.toContinue();
                         break;
                     case 5:
-                        this.sqlite.selectLite("SELECT EmployeeID, FirstName, "
+                        sizes = this.sqlite.loadSizeByQuery("SELECT "
+                                + "MAX(LENGTH(EmployeeID)) as EmployeeID, "
+                                + "MAX(LENGTH(FirstName)) as FirstName, "
+                                + "MAX(LENGTH(LastName)) as LastName, "
+                                + "MAX(LENGTH(HireDate)) as HireDate, "
+                                + "MAX(LENGTH(Address)) as Address, "
+                                + "MAX(LENGTH(City)) as City, "
+                                + "MAX(LENGTH(HomePhone)) as HomePhone, "
+                                + "COUNT(EmployeeID) FROM Employees;");
+                        this.sqlite.select("SELECT EmployeeID, FirstName, "
                                 + "LastName, HireDate, Address, City, HomePhone "
-                                + "FROM Employees;", "Employees");                        
+                                + "FROM Employees;", "Employees", sizes);                        
                         Console.toContinue();
                         break;                       
                 }

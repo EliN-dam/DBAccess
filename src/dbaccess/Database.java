@@ -58,6 +58,7 @@ public class Database {
      * 
      */
     public Connection connect() throws SQLException{
+        //return DriverManager.getConnection(connection, user, pass);
         switch (this.dbType){
             case "mysql":
                 MysqlDataSource dsMySQL = new MysqlDataSource();
@@ -101,7 +102,6 @@ public class Database {
                 System.out.println(this.dbType.toUpperCase() + ": tipo no soportado.");
                 return null;
         }
-        //return DriverManager.getConnection(connection, user, pass);
     }  
     
     /**
@@ -112,19 +112,16 @@ public class Database {
      * https://docs.oracle.com/javase/8/docs/api/java/sql/CallableStatement.html
      * @param query La consulta a realizar.
      * @param tableName Nombre de la tabla.
+     * @param sizes Array con tamaños de necesarios para dibujar la tabla.
      */
-    public void select(String query, String tableName){
+    public void select(String query, String tableName, int[] sizes){
         try ( // Usando el Try-With-Paramenters.
                 Connection conn = this.connect();
-                PreparedStatement stmt = conn.prepareStatement(
-                    query,
-                    ResultSet.TYPE_SCROLL_SENSITIVE, // Permite navegar hacia atrás en el ResultSet.
-                    ResultSet.CONCUR_READ_ONLY
-                );
+                PreparedStatement stmt = conn.prepareStatement(query);
                 ResultSet result = stmt.executeQuery();
             ){
-            if (result.isBeforeFirst())
-                this.printTable(result, this.loadSizes(result), tableName);
+            if (sizes[sizes.length - 1] > 0)
+                this.printTable(result, sizes, tableName);
             else
                 System.out.println("La consulta ha devuelto 0 resultados.");
         } catch (SQLException e){
@@ -139,48 +136,20 @@ public class Database {
      * como filtros, y muestra sus resultados.
      * @param query La consulta a realizar.
      * @param tableName Nombre de la tabla.
+     * @param sizes Array con tamaños de necesarios para dibujar la tabla.
      * @param values Parámetros en orden que la consulta.
      */
-    public void select(String query, String tableName, Object[] values){
+    public void select(String query, String tableName, int[] sizes, Object[] values){
         try (
                 Connection conn = this.connect();
-                PreparedStatement stmt = conn.prepareStatement(
-                    query,
-                    ResultSet.TYPE_SCROLL_SENSITIVE, // Permite navegar hacia atrás en el ResultSet.
-                    ResultSet.CONCUR_READ_ONLY
-                );
+                PreparedStatement stmt = conn.prepareStatement(query);
             ){
             for (int i = 0; i < values.length; i++){
-                stmt.setObject(i + 1, values[i]);
+                stmt.setObject(i + 1, values[i]); // +1 porque los parámetros empiezan en 1.
             }
             try (ResultSet result = stmt.executeQuery();){
-                if (result.isBeforeFirst())
-                    this.printTable(result, this.loadSizes(result), tableName);
-                else
-                    System.out.println("La consulta ha devuelto 0 resultados.");
-            }
-        } catch (SQLException e){
-            System.out.println("No se ha podido realizar la consulta a la base"
-                    + " de datos");
-        }
-    }
-    
-    /**
-     * Realiza una consulta de selección a la base de datos, almacena y muestra 
-     * sus resultados. Utiliza este método para bases de datos SQLite.
-     * @param query La consulta a realizar.
-     * @param tableName Nombre de la tabla.
-     */
-    public void selectLite(String query, String tableName){
-        try ( // SQLite y yo no nos vamos llevar bien...
-                Connection conn = this.connect();
-                PreparedStatement stmt = conn.prepareStatement(query);
-                ResultSet first = stmt.executeQuery();
-            ){
-            int[] sizes = this.loadSizes(first);
-            try (ResultSet second = stmt.executeQuery()){
                 if (sizes[sizes.length - 1] > 0)
-                    this.printTable(second, sizes, tableName);
+                    this.printTable(result, sizes, tableName);
                 else
                     System.out.println("La consulta ha devuelto 0 resultados.");
             }
@@ -190,43 +159,11 @@ public class Database {
             //e.printStackTrace();
         }
     }
-    
-    /**
-     * Realiza una consulta de selección a la base de datos utilizando parámetros
-     * como filtros, y muestra sus resultados. Utiliza este método para bases de 
-     * datos SQLite.
-     * @param query La consulta a realizar.
-     * @param tableName Nombre de la tabla.
-     * @param values Parámetros en orden que la consulta.
-     */
-    public void selectLite(String query, String tableName, Object[] values){
-        try (
-                Connection conn = this.connect();
-                PreparedStatement stmt = conn.prepareStatement(query);
-            ){
-            for (int i = 0; i < values.length; i++){
-                stmt.setObject(i + 1, values[i]);
-            }
-            try (ResultSet first = stmt.executeQuery()){
-                int[] sizes = this.loadSizes(first);
-                try (ResultSet second = stmt.executeQuery()){
-                    if (sizes[sizes.length - 1] > 0)
-                        this.printTable(second, sizes, tableName);
-                    else
-                        System.out.println("La consulta ha devuelto 0 resultados.");
-                }
-            }
-        } catch (SQLException e){
-            System.out.println("No se ha podido realizar la consulta a la base"
-                    + " de datos");
-            //e.printStackTrace();
-        }
-    }
-    
+           
     /**
      * Recorre los resultados de la consulta midiendo los tamaños de cada columna 
      * y el total de la tabla necesarios para dibujar la tabla.
-     * ESTO DEBERIA HACERLO CON UNA CONSULTA PREVIA.
+     * OBSOLETA (DEPRECATED) Usar loadSizesByQuery() en su lugar.
      * @param result El resultado de la consulta realizada.
      * @return <ul>
      *              <li>True - Si ha conseguidos y registrado los tamaños</li>
@@ -241,15 +178,14 @@ public class Database {
             int sizes[] = new int[nColumns + 2];
             int length;
             String value;
-            if (!this.dbType.equals("sqlite"))
-                result.beforeFirst(); // Nos aseguramos que empieza por el principio.
+            result.beforeFirst(); // Nos aseguramos que empieza por el principio.
             for (int i = 1; i <= nColumns; i++){ // Contamos la cabecera.
                 length = mData.getColumnLabel(i).length();
                     if (sizes[i] < length)
                         sizes[i] = length;
             }
             while (result.next()){ // Contamos los resultados.
-                for (int i = 2; i <= nColumns; i++){
+                for (int i = 1; i <= nColumns; i++){
                     value = result.getString(i);
                     if (value != null)
                         length = value.length();
@@ -271,6 +207,96 @@ public class Database {
     }
     
     /**
+     * Realiza una consulta que devuelve la longitud máxima de los datos 
+     * contenidos en cada columna y el número de filas.
+     * @param query Consulta, para que el cálculo sea correcto la  consulta debe
+     * basarse en la misma que queramos mostrar a continuación, además los alias 
+     * de cada columna deben coincidir con el nombre de la columna en la tabla.
+     * <pre>
+     * EJEMPLO:
+     *      SELECT <em>name</em>, <em>phone</em> FROM <em>customer</em>
+     *      SELECT MAX(LENGTH(<em>name</em>)), MAX(LENGTH(<em>phone</em>)), COUNT(*) FROM <em>customer</em>
+     * </pre>
+     * @return Array con los valores de los tamaños, incluido el total y el 
+     * número de filas.
+     */
+    public int[] loadSizeByQuery(String query) {
+        try (
+                Connection conn = this.connect();
+                PreparedStatement stmt = conn.prepareStatement(query);
+                ResultSet result =  stmt.executeQuery();
+            ){   
+            ResultSetMetaData mData = result.getMetaData();
+            int[] sizes = new int[mData.getColumnCount() + 1];
+            result.next();
+            for (int i = 1; i < sizes.length; i++)
+                sizes[i] = result.getInt(i);
+            // Contamos la cabecera. La ultima posición es el número de tuplas.
+            int length = 0;
+            for (int i = 1; i < sizes.length - 1; i++){
+                length = mData.getColumnLabel(i).length();
+                    if (sizes[i] < length)
+                        sizes[i] = length;
+            }
+            for (int i = 1; i < sizes.length - 1; i++)
+                sizes[0] += sizes[i];
+            return sizes;
+        } catch (SQLException e){
+            System.out.println("No se ha podido realizar la consulta a la base"
+                    + " de datos");
+            //e.printStackTrace();
+            return null;
+        }
+    }
+    
+    /**
+     * Realiza una consulta que devuelve la longitud máxima de los datos 
+     * contenidos en cada columna y el número de filas.
+     * @param query Consulta, para que el cálculo sea correcto la  consulta debe
+     * basarse en la misma que queramos mostrar a continuación, además los alias 
+     * de cada columna deben coincidir con el nombre de la columna en la tabla.
+     * <pre>
+     * EJEMPLO:
+     *      SELECT <em>name</em>, <em>phone</em> FROM <em>customer</em>
+     *      SELECT MAX(LENGTH(<em>name</em>)), MAX(LENGTH(<em>phone</em>)), COUNT(*) FROM <em>customer</em>
+     * </pre>
+     * @param values Parámetros en orden que la consulta.
+     * @return Array con los valores de los tamaños, incluido el total y el 
+     * número de filas.
+     */
+    public int[] loadSizeByQuery(String query, Object[] values) {
+        try (
+                Connection conn = this.connect();
+                PreparedStatement stmt = conn.prepareStatement(query);
+            ){
+            for (int i = 0; i < values.length; i++){
+                stmt.setObject(i + 1, values[i]);
+            }
+            try (ResultSet result =  stmt.executeQuery()){
+                ResultSetMetaData mData = result.getMetaData();
+                int[] sizes = new int[mData.getColumnCount() + 1];
+                result.next();
+                for (int i = 1; i < sizes.length; i++)
+                    sizes[i] = result.getInt(i);
+                int length = 0;
+                for (int i = 1; i < sizes.length - 1; i++){
+                    length = mData.getColumnLabel(i).length();
+                        if (sizes[i] < length)
+                            sizes[i] = length;
+                }
+                for (int i = 1; i < sizes.length - 1; i++)
+                    sizes[0] += sizes[i];
+                return sizes;
+            }
+        } catch (SQLException e){
+            System.out.println("No se ha podido realizar la consulta a la base"
+                    + " de datos");
+            //e.printStackTrace();
+            return null;
+        }
+    }
+    
+    /**
      * Dibuja una tabla en consola mostrando los resultados de la consulta.
      * @param result El resultado de la consulta.
      * @param tableName Nombre de la tabla o vista.
@@ -278,16 +304,15 @@ public class Database {
      * @throws SQLException 
      */
     public void printTable(ResultSet result, int[] sizes, String tableName) throws SQLException{
-        ResultSetMetaData mData = result.getMetaData();
-        int nColumns = mData.getColumnCount();
+        int nColumns = sizes.length - 2;
         int maxSize = sizes[0] + (nColumns * 2) + (nColumns - 1);
         String interline = "+";
-        for (int i = 1; i < nColumns + 1; i++) // +1 porque empieza en 1.
+        for (int i = 1; i <= nColumns; i++) 
             interline += new String(new char[sizes[i]]).replace('\0', '=') 
                     + "==" + "+"; 
         this.printTitle(tableName, maxSize);
-        this.printHead(sizes, mData, interline);
-        this.printTuples(result, sizes, nColumns, maxSize, interline);
+        this.printHead(sizes, result.getMetaData(), interline);
+        this.printTuples(result, sizes, maxSize, interline);
     }
     
     /**
@@ -321,7 +346,7 @@ public class Database {
             throws SQLException{
         int length;
         System.out.print("|");
-        for (int i = 1; i <= data.getColumnCount(); i++){
+        for (int i = 1; i <= sizes.length - 2; i++){
             length = data.getColumnLabel(i).length();
             System.out.printf("%" + (sizes[i] - length + 2) / 2 +
                                   "s%-" + length +
@@ -335,21 +360,18 @@ public class Database {
      * Dibuja por consola las filas con los registros almacenados de la consulta.
      * @param result El resultado de la consulta.
      * @param sizes Los tamaños de cada una de las columnas.
-     * @param nColumns Número de columnas que ha devuelto la consulta.
      * @param totalSize Define la longitud total de las filas.
      * @param interline Cadena de caracteres con los bordes entre filas.
      * @throws SQLException 
      */
-    public void printTuples(ResultSet result, int[] sizes, int nColumns, int totalSize,
-            String interline) throws SQLException{
+    public void printTuples(ResultSet result, int[] sizes, int totalSize,String 
+            interline) throws SQLException{
         int length;
         String value;
-        if (!this.dbType.equals("sqlite"))
-            result.beforeFirst(); // Nos aseguramos que empieza por el principio.
-        int fuksqlite = 0; 
+        int counter = 0; 
         while (result.next()){
             System.out.print("|");
-            for (int i = 1; i <= nColumns; i++){
+            for (int i = 1; i <= sizes.length - 2; i++){
                 value = result.getString(i);
                 if (value != null)    
                     length = value.length();
@@ -361,14 +383,9 @@ public class Database {
                                   "", value, "");
             }
             // Si no es es lá última línea...
-            if (!this.dbType.equals("sqlite")){
-                if (!result.isLast())
-                    System.out.println("\n" + interline);
-            } else {
-                fuksqlite++; 
-                if (sizes[sizes.length - 1] != fuksqlite)
-                    System.out.println("\n" + interline);
-            }
+            counter++; 
+            if (counter != sizes[sizes.length - 1])
+                System.out.println("\n" + interline);
         }
         System.out.println("\n+" + new String(new char[totalSize]).replace('\0', '=') 
                 + "+");

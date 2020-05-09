@@ -40,6 +40,8 @@ public class MySQL implements Query {
      */
     public void menu(){
         byte option = 0;
+        int[] sizes;
+        Object[] values;
         String[] mainMenu = { 
             "Añadir una película",
             "Modificar una película",
@@ -71,21 +73,58 @@ public class MySQL implements Query {
                         Console.toContinue();
                         break;
                     case 4:
-                        this.mysql.select("SELECT film_id, title, description "
+                        values = this.searchValues();
+                        sizes = this.mysql.loadSizeByQuery("SELECT "
+                                + "MAX(LENGTH(film_id)) as film_id, "
+                                + "MAX(LENGTH(title)) as title, "
+                                + "MAX(LENGTH(description)) as description, "
+                                + "COUNT(film_id) "
+                                + "FROM film_text Where title = ?;", values);
+                        this.mysql.select("SELECT "
+                                + "film_id, "
+                                + "title, "
+                                + "description "
                                 + "FROM film_text Where title = ?;", "film_text",
-                                this.searchValues());
+                                sizes, values);
                         Console.toContinue();
                         break;
                     case 5:
-                        this.mysql.select("SELECT film_id, title, description "
-                                + "FROM film_text ORDER BY film_id DESC LIMIT 10;", 
-                                "film_text");
+                        sizes = this.mysql.loadSizeByQuery("SELECT "
+                                + "MAX(LENGTH(film_id)) as film_id, "
+                                + "MAX(LENGTH(title)) as title, "
+                                + "MAX(LENGTH(description)) as description, "
+                                + "COUNT(film_id) FROM (SELECT "
+                                + "film_id, "
+                                + "title, "
+                                + "description FROM film_text "
+                                + "ORDER BY film_id DESC LIMIT 10) as TD");
+                        this.mysql.select("SELECT "
+                                + "film_id, "
+                                + "title, "
+                                + "description "
+                                + "FROM film_text "
+                                + "ORDER BY film_id DESC LIMIT 10;", "film_text", 
+                                sizes);
                         Console.toContinue();
                         break;
                     case 6:
-                        this.mysql.select("SELECT FID, title, description, "
-                                + "category, price, length, rating FROM film_list"
-                                + ";", "film_list");
+                        sizes = this.mysql.loadSizeByQuery("SELECT "
+                                + "MAX(LENGTH(FID)) as FID, "
+                                + "MAX(LENGTH(title)) as title, "
+                                + "MAX(LENGTH(description)) as description, "
+                                + "MAX(LENGTH(category)) as category, "
+                                + "MAX(LENGTH(price)) as price, "
+                                + "MAX(LENGTH(length)) as length, "
+                                + "MAX(LENGTH(rating)) as rating, "
+                                + "COUNT(FID) FROM film_list");
+                        this.mysql.select("SELECT "
+                                + "FID, "
+                                + "title, "
+                                + "description, "
+                                + "category, "
+                                + "price, "
+                                + "length, "
+                                + "rating FROM film_list;", "film_list", sizes);
                         Console.toContinue();
                         break;
                 }

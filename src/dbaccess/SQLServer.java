@@ -40,6 +40,8 @@ public class SQLServer implements Query {
      */
     public void menu(){
         byte option = 0;
+        int[] sizes;
+        Object[] values;
         String[] mainMenu = { 
             "Añadir un componente al catálogo",
             "Modificar el precio de un componente",
@@ -69,14 +71,34 @@ public class SQLServer implements Query {
                         Console.toContinue();
                         break;
                     case 4:
-                        this.mssql.select("SELECT clave, descripcion, precio, "
+                        values = this.searchValues();
+                        sizes = this.mssql.loadSizeByQuery("SELECT "
+                                + "MAX(LEN(clave)) as clave, "
+                                + "MAX(LEN(descripcion)) as descripcion, "
+                                + "MAX(LEN(precio)) as precio, "
+                                + "MAX(LEN(CodTipo))as CodTipo, "
+                                + "COUNT(clave) FROM Componente "
+                                + "WHERE clave = ?;", values);
+                        this.mssql.select("SELECT "
+                                + "clave, "
+                                + "descripcion, "
+                                + "precio, "
                                 + "CodTipo FROM Componente WHERE clave = ?;", 
-                                "Componente", this.searchValues());
+                                "Componente", sizes, values);
                         Console.toContinue();
                         break;
                     case 5:
-                        this.mssql.select("SELECT clave, descripcion, precio, "
-                                + "CodTipo FROM Componente;", "Componente");
+                        sizes = this.mssql.loadSizeByQuery("SELECT "
+                                + "MAX(LEN(clave)) as clave, "
+                                + "MAX(LEN(descripcion)) as descripcion, "
+                                + "MAX(LEN(precio)) as precio, "
+                                + "MAX(LEN(CodTipo))as CodTipo, "
+                                + "COUNT(clave) FROM Componente;");
+                        this.mssql.select("SELECT "
+                                + "clave, "
+                                + "descripcion, "
+                                + "precio, "
+                                + "CodTipo FROM Componente;", "Componente", sizes);
                         Console.toContinue();
                         break;
                 }

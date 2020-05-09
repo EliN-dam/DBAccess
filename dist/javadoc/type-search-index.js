@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes","url":"allclasses-index.html"},{"p":"utils","l":"Configuration"},{"p":"utils","l":"Console"},{"p":"dbaccess","l":"Database"},{"p":"dbaccess","l":"Main"},{"p":"dbaccess","l":"MySQL"},{"p":"dbaccess","l":"PostgreSQL"},{"p":"dbaccess","l":"Query"},{"p":"dbaccess","l":"SQLite"},{"p":"dbaccess","l":"SQLServer"}]
