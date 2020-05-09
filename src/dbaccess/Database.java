@@ -242,8 +242,8 @@ public class Database {
                 sizes[0] += sizes[i];
             return sizes;
         } catch (SQLException e){
-            System.out.println("No se ha podido realizar la consulta a la base"
-                    + " de datos");
+            System.out.println("No se ha podido cargar las longitudes de los "
+                    + "datos consultados");
             //e.printStackTrace();
             return null;
         }
@@ -289,8 +289,8 @@ public class Database {
                 return sizes;
             }
         } catch (SQLException e){
-            System.out.println("No se ha podido realizar la consulta a la base"
-                    + " de datos");
+            System.out.println("No se ha podido cargar las longitudes de los "
+                    + "datos consultados");
             //e.printStackTrace();
             return null;
         }
